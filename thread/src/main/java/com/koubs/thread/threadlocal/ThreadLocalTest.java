@@ -1,4 +1,4 @@
-package org.example.threadlocal;
+package com.koubs.thread.threadlocal;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -22,11 +22,21 @@ public class ThreadLocalTest {
      * 由于其key是弱引用，当key对应的线程结束时，该对应的key对象就会被回收，保证内存不泄露
      */
 
-    public static final ThreadLocal<Integer> SEQ_NUM = ThreadLocal.withInitial(() -> 0);
+    public static final ThreadLocal<Integer> SEQ_NUM = ThreadLocal.withInitial(() -> 12);
 
     public static int getNextNum() {
         SEQ_NUM.set(SEQ_NUM.get() + 1);
         return SEQ_NUM.get();
+    }
+
+    @Test
+    void test1(){
+        System.out.println(SEQ_NUM.get());
+        SEQ_NUM.remove();
+        System.out.println(SEQ_NUM.get());
+        SEQ_NUM.set(13);
+        System.out.println(SEQ_NUM.get());
+
     }
 
     @Test
