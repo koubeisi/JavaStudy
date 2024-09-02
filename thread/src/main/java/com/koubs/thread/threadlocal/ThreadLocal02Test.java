@@ -1,10 +1,12 @@
 package com.koubs.thread.threadlocal;
 
-import cn.hutool.core.thread.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <a href="https://mp.weixin.qq.com/s/NrHIOzrz_Okwts4CIXZOkQ">一个ThreadLocal和面试官大战30个回合</a>
@@ -18,9 +20,8 @@ class ThreadLocal02Test {
 
     @Test
     void test() throws InterruptedException {
-        ThreadFactory threadFactory = ThreadFactoryBuilder.create().setNamePrefix("thread-local-pool-").build();
         ExecutorService executorService = new ThreadPoolExecutor(5, 5, 0,
-                TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), threadFactory);
+                TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
         final int count = 5;
         for (int i = 0; i < count; i++) {
             executorService.execute(() -> {

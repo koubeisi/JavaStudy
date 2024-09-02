@@ -16,7 +16,7 @@ public class CThread extends Thread {
 			num++;
 			if(num % 50000 == 0) {
 				System.out.println("Thread" + this.getName() + ":" + num);
-				yield();
+//				yield();
 			}
 		}
 	}

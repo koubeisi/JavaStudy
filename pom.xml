@@ -24,15 +24,11 @@
     </modules>
 
     <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-
-        <juinit.version>5.7.1</juinit.version>
-        <lombok.version>1.18.20</lombok.version>
-        <slf4j.version>1.7.30</slf4j.version>
-        <logback.version>1.2.3</logback.version>
-        <hutool.version>5.6.5</hutool.version>
-        <guava.version>30.1.1-jre</guava.version>
+        <maven.compiler.release>21</maven.compiler.release>
+        <juinit.version>5.10.3</juinit.version>
+        <lombok.version>1.18.34</lombok.version>
+        <slf4j.version>2.0.12</slf4j.version>
+        <logback.version>1.5.7</logback.version>
     </properties>
 
     <dependencies>
@@ -58,22 +54,9 @@
             <version>${logback.version}</version>
         </dependency>
         <dependency>
-            <groupId>cn.hutool</groupId>
-            <artifactId>hutool-all</artifactId>
-            <version>${hutool.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.openjdk.jol</groupId>
             <artifactId>jol-core</artifactId>
             <version>0.16</version>
         </dependency>
-
     </dependencies>
-
 </project>

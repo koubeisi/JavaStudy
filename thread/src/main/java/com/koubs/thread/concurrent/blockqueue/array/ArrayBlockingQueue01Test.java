@@ -1,7 +1,8 @@
 package com.koubs.thread.concurrent.blockqueue.array;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -11,8 +12,9 @@ import java.util.concurrent.ArrayBlockingQueue;
  * @author KouBeisi
  * @since 2021/5/16
  */
-@Slf4j
 class ArrayBlockingQueue01Test {
+
+    public static final Logger log = LoggerFactory.getLogger(ArrayBlockingQueue01Test.class);
 
     private final ArrayBlockingQueue<Integer> blockingQueue = new ArrayBlockingQueue<>(8);
 

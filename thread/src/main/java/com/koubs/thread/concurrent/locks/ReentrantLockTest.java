@@ -1,4 +1,4 @@
-package com.koubs.thread.concurrent.lock;
+package com.koubs.thread.concurrent.locks;
 
 import java.util.concurrent.locks.ReentrantLock;
 
