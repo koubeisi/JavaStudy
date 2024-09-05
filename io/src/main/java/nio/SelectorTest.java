@@ -1,5 +1,6 @@
 package nio;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -21,6 +22,7 @@ import java.util.Set;
  * @version v1.0
  * @since 2019年3月29日下午3:47:21
  */
+@Slf4j
 public class SelectorTest {
 
     @Test
@@ -86,21 +88,39 @@ public class SelectorTest {
                     } else if (key.isConnectable()) {
                         // a connection was established with a remote server.
                     } else if (key.isReadable()) {
-                        // 13.获取当前选择器上“读就绪”状态通道
-                        SocketChannel socketChannel = (SocketChannel) key.channel();
-                        // 14.读取数据
-                        ByteBuffer buf = ByteBuffer.allocate(1024);
-                        if (socketChannel.read(buf) > 0) {
-                            buf.flip();
-                            System.out.println("客户端消息：" + new String(buf.array(), 0, buf.limit()));
-                            buf.clear();
-                            buf.put("我是服务端".getBytes(StandardCharsets.UTF_8));
-                            buf.flip();
-                            socketChannel.write(buf);
-                            socketChannel.close();
+                        try {
+                            // 13.获取当前选择器上“读就绪”状态通道
+                            SocketChannel socketChannel = (SocketChannel) key.channel();
+                            // 14.读取数据
+                            ByteBuffer buf = ByteBuffer.allocate(1024);
+                            if (socketChannel.read(buf) > 0) {
+                                buf.flip();
+                                System.out.println("客户端消息：" + new String(buf.array(), 0, buf.limit()));
+                                buf.clear();
+                                buf.put("我是服务端".getBytes(StandardCharsets.UTF_8));
+                                buf.flip();
+                                socketChannel.write(buf);
+                                if (buf.hasRemaining()) {
+                                    key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
+                                    key.attach(buf);
+                                }
+                            }
+                        } catch (IOException e) {
+                            log.info("{}", e.getMessage());
+                            key.cancel();
                         }
+
                     } else if (key.isWritable()) {
                         // a channel is ready for writing
+                        var buffer = (ByteBuffer) key.attachment();
+                        SocketChannel socketChannel = (SocketChannel) key.channel();
+                        var write = socketChannel.write(buffer);
+                        log.info("{}", write);
+                        if (!buffer.hasRemaining()) {
+                            key.attach(null);
+                            key.interestOps(key.interestOps() & ~SelectionKey.OP_WRITE);
+                        }
+
                     }
                     // 从集合中删除对应的事件，防止二次处理
                     keyIterator.remove();
