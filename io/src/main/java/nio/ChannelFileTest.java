@@ -2,89 +2,50 @@ package nio;
 
 import org.junit.jupiter.api.Test;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
 
-public class ChannelFileDemo {
+public class ChannelFileTest {
 
     /*
      * 1.利用通道(非直接缓冲区)完成文件的复制
      */
     @Test
     public void test() {
-
-        long start = System.currentTimeMillis();
-
-        FileInputStream fis = null;
-        FileOutputStream fos = null;
         // 1）获取通道
-        FileChannel inChannel = null;
-        FileChannel outChannel = null;
-        try {
-            fis = new FileInputStream("1.jpg");
-            fos = new FileOutputStream("2.jpg");
-
-            inChannel = fis.getChannel();
-            outChannel = fos.getChannel();
+        try (var channel1 = Files.newByteChannel(Paths.get("file", "channel", "01.txt"));
+             var channel2 = Files.newByteChannel(Paths.get("file", "channel", "02.txt"),
+                     StandardOpenOption.WRITE,       // 确保有写权限
+                     StandardOpenOption.CREATE,      // 如果文件不存在则创建
+                     StandardOpenOption.TRUNCATE_EXISTING // 如果文件存在则清空
+             )
+        ) {
 
             // 2）分配指定大小的缓冲区 ??文件的大小比缓冲区大？？
-            ByteBuffer buf = ByteBuffer.allocate(1024);
+            ByteBuffer buf = ByteBuffer.allocate(8);
 
             // 3）将通道中的数据存入缓冲区中
-            while (inChannel.read(buf) != -1) {
+            while (channel1.read(buf) != -1) {
                 buf.flip(); // 切换成读取数据的模式
                 // 4）将缓冲区中的数据写入通道中
-                outChannel.write(buf);
+                System.out.println(StandardCharsets.UTF_8.decode(buf));
+                channel2.write(buf);
                 buf.clear(); // 清空缓冲区
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-
-            if (outChannel != null) {
-                try {
-                    outChannel.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            if (inChannel != null) {
-                try {
-                    inChannel.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            if (fis != null) {
-                try {
-                    fis.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            if (fos != null) {
-                try {
-                    fos.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            System.err.println(e.getMessage());
         }
-
-        long end = System.currentTimeMillis();
-        System.out.println("耗费时间为：" + (end - start) + "ms");
-
     }
 
     /*
@@ -118,20 +79,26 @@ public class ChannelFileDemo {
 
     /*
      * 通道之间的数据传输（直接缓冲区）
+     * 底层利用操作系统的【零拷贝】进行优化
      */
     @Test
-    public void test3() throws IOException {
+    public void test3() {
 
         // 打开通道
-        FileChannel inChannel = FileChannel.open(Paths.get("1.jpg"), StandardOpenOption.READ);
-        FileChannel outChannel = FileChannel.open(Paths.get("2.jpg"), StandardOpenOption.READ,
-                StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+        try (FileChannel inChannel = FileChannel.open(Paths.get("1.jpg"), StandardOpenOption.READ);
+             FileChannel outChannel = FileChannel.open(Paths.get("2.jpg"), StandardOpenOption.READ,
+                     StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)) {
+            long size = inChannel.size();
+            var left = size;
+            while (left > 0) {
+                // 默认限制传输 2G
+                left = left - inChannel.transferTo(size - left, left, outChannel);
+            }
 
-        inChannel.transferTo(0, inChannel.size(), outChannel);
 //        outChannel.transferFrom(inChannel, 0, inChannel.size());
-
-        inChannel.close();
-        outChannel.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
@@ -148,7 +115,7 @@ public class ChannelFileDemo {
         ByteBuffer buf2 = ByteBuffer.allocate(10240);
 
         // 3.分散读取
-        ByteBuffer[] bufs = { buf1, buf2 };
+        ByteBuffer[] bufs = {buf1, buf2};
         channel1.read(bufs);
 
         for (ByteBuffer byteBuffer : bufs) {
@@ -170,39 +137,38 @@ public class ChannelFileDemo {
         raf1.close();
         raf2.close();
     }
-    
+
     /*
      * 等同于test4()
      */
     @Test
     public void test5() throws IOException {
-        
+
         // 1.获取通道
         FileChannel inChannel = FileChannel.open(Paths.get("Java.txt"), StandardOpenOption.READ);
-        
+
         // 2.分配指定大小的缓冲区
         ByteBuffer buf1 = ByteBuffer.allocate(100);
         ByteBuffer buf2 = ByteBuffer.allocate(10240);
-        
+
         // 3.分散读取
-        ByteBuffer[] bufs = { buf1, buf2 };
+        ByteBuffer[] bufs = {buf1, buf2};
         inChannel.read(bufs);
-        
+
         for (ByteBuffer byteBuffer : bufs) {
             byteBuffer.flip();
         }
-        
+
         // 输出buffer中的内容
         System.out.println(new String(bufs[0].array(), 0, bufs[0].limit()));
         System.out.println(new String(bufs[1].array(), 0, bufs[1].limit()));
-        
+
         // 4.聚集写入
-        FileChannel outChannel = FileChannel.open(Paths.get("ja.txt"), StandardOpenOption.READ, StandardOpenOption.WRITE,StandardOpenOption.CREATE);
-             
+        FileChannel outChannel = FileChannel.open(Paths.get("ja.txt"), StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
+
         outChannel.write(bufs);
-        
+
     }
-    
 
 
 }
