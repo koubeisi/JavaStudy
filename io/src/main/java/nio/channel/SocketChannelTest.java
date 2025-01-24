@@ -26,17 +26,16 @@ public class SocketChannelTest {
             // 2. 绑定对应的端口号
             serverSocketChannel.socket().bind(new InetSocketAddress(PORT));
             // 3. 通道默认是阻塞的，需要设置为非阻塞🥶
-            serverSocketChannel.configureBlocking(true);
+//            serverSocketChannel.configureBlocking(false);
             log.info("{}", "服务端启动成功......");
             while (true) {
                 log.info("{}", "Waiting for connection");
                 // 4. 检查是否有客户端连接 有客户端连接会返回对应的通道
                 final var socketChannel = serverSocketChannel.accept();
                 if (socketChannel == null) {
-                    log.info("{}", "没有客户端连接，我去做别的事情");
-                    Thread.sleep(2000);
                     continue;
                 }
+//                socketChannel.configureBlocking(false);
                 log.info("{}", "Incoming connection from: " + socketChannel.socket().getRemoteSocketAddress());
                 // 5. 获取客户端传递过来的数据并把数据放在 ByteBuffer 这个缓冲区中
                 final ByteBuffer buffer = ByteBuffer.allocate(1024);
@@ -50,10 +49,7 @@ public class SocketChannelTest {
                 socketChannel.write(ByteBuffer.wrap("我是服务端！".getBytes(StandardCharsets.UTF_8)));
                 socketChannel.close();
             }
-        } catch (InterruptedException | IOException e) {
-            if (e instanceof InterruptedException) {
-                Thread.currentThread().interrupt();
-            }
+        } catch (IOException e) {
             log.info("{}", e.getMessage());
         }
 

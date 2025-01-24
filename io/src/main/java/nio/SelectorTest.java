@@ -61,7 +61,7 @@ public class SelectorTest {
             System.out.println("服务端启动成功......");
 
             while (true) {
-                // 6.轮询式的检查选择器上已经有事件
+                // 6.没有事件发生，线程阻塞等待 2s，不填参数一直阻塞
                 var select = selector.select(2000);
                 if (select == 0) {
                     System.out.println("没有事件发生......");
