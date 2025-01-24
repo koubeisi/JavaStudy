@@ -1,5 +1,6 @@
 package com.koubs.thread.concurrent.locks;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -12,14 +13,12 @@ class ReentrantLockTest {
     public void write() {
         lock.lock();
         try {
-            long startTime = System.currentTimeMillis();
             System.out.println("开始往buff里写数据");
-            while (true) {
-                if ((System.currentTimeMillis() - startTime) > Integer.MAX_VALUE) {
-                    break;
-                }
-            }
+            TimeUnit.SECONDS.sleep(5);
             System.out.println("终于写完了");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.out.println("写线程被中断");
         } finally {
             lock.unlock();
         }
@@ -27,11 +26,16 @@ class ReentrantLockTest {
 
     }
 
-    public void read() throws InterruptedException {
+    public void read() {
         //这里的锁可以相应中断
-        lock.lockInterruptibly();
         try {
+            lock.lockInterruptibly();
             System.out.println("从buff中读数据");
+            TimeUnit.SECONDS.sleep(1);
+            System.out.println("终于读完了");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.out.println("中断读线程");
         } finally {
             lock.unlock();
         }
@@ -39,12 +43,23 @@ class ReentrantLockTest {
 
     public static void main(String[] args) {
         ReentrantLockTest t = new ReentrantLockTest();
-        t.write();
+
+        Thread writer = new Thread(t::write, "Writer");
+        Thread reader = new Thread(t::read, "Reader");
+
+        writer.start();
+        reader.start();
+
+        // 模拟读线程等待n秒后中断读线程
         try {
-            t.read();
+            // 设置2秒表示读线程未获取到锁，则中断读线程
+            // 设置7秒表示读线程获取到锁，则读线程读完数据后，中断就不起作用了
+            Thread.sleep(2000);
+            reader.interrupt();  // 模拟中断读线程
         } catch (InterruptedException e) {
-            e.printStackTrace();
             Thread.currentThread().interrupt();
+            System.out.println("当前主线程被中断");
         }
     }
+
 }
