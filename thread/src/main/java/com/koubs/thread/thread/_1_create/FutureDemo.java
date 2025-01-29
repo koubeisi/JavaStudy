@@ -6,9 +6,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
- * @description 该程序用来测试Future和Callable的使用
+ * 该程序用来测试Future和Callable的使用
  * @author koubeisi
- * @time 2018年12月12日下午9:32:45
+ * @since 2018年12月12日下午9:32:45
  * @version v1.0
  */
 public class FutureDemo {
