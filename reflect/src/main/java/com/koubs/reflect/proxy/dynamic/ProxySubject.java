@@ -4,7 +4,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
 public class ProxySubject implements InvocationHandler {
-	private Object target;
+	private final Object target;
 
 	public ProxySubject(Object obj) {
 		this.target = obj;
@@ -39,9 +39,9 @@ public class ProxySubject implements InvocationHandler {
 	}
 
 	private void before() {
-		System.out.println("我是代理————我负责找房，看房。" + getClass());
+		System.out.println("我是代理，我执行实际操作之前的行为" + getClass());
 	}
 	private void after() {
-		System.out.println("我是代理————我负责银行贷款事宜！" + getClass());
+		System.out.println("我是代理，我只想实际操作之后的行为" + getClass());
 	}
 }

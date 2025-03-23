@@ -6,4 +6,6 @@ package com.koubs.reflect.proxy.dynamic;
 public interface Subject {
 	@MyAnnotation("interface method")
 	void request();
+
+	void response();
 }

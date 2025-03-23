@@ -16,6 +16,7 @@ public class DynamicProxy {
 
 		Subject subject = (Subject) Proxy.newProxyInstance(c.getClassLoader(), c.getInterfaces(), proxys);
 		subject.request();
+		subject.response();
 	}
 
 }
